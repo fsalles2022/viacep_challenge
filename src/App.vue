@@ -1,10 +1,26 @@
 <template>
   <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">Pesquisar</router-link>
+    <router-link :to="dinamicRouteHome">Home</router-link> ||
+
+     <router-link :to="dinamicRouteAbout">Buscar CEP</router-link> |
+     <router-link :to="dinamicRouteContact">Contato</router-link>
   </nav>
   <router-view/>
 </template>
+
+<script>
+
+export default{
+  data() {
+    return {
+      dinamicRouteHome: {name: 'home'},
+      dinamicRouteContact: {name: 'contact'},
+      dinamicRouteAbout: {name: 'about'}
+    }
+  }
+}
+
+</script>
 
 <style>
 #app {

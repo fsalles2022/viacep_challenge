@@ -22,3 +22,16 @@ npm run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+
+
+Implemnatado:
+vue create challenge
+vue cli
+Docker
+Dockerfile
+Docker-compose.yml
+Nginx
+Mysql
+Vue router
+Rotas dinamicas
