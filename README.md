@@ -35,3 +35,9 @@ Nginx
 Mysql
 Vue router
 Rotas dinamicas
+
+
+npm install bootstrap
+npm install axios
+npm install vee-validate@next
+

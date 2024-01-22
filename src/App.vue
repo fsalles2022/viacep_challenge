@@ -1,21 +1,20 @@
 <template>
   <nav>
-    <router-link :to="dinamicRouteHome">Home</router-link> ||
-
-     <router-link :to="dinamicRouteAbout">Buscar CEP</router-link> |
-     <router-link :to="dinamicRouteContact">Contato</router-link>
+    <router-link :to="dinamicRouteHome">Home</router-link> |
+    <router-link :to="dinamicRouteAbout">Buscar CEP</router-link> |
+    <router-link :to="dinamicRouteContact">Contato</router-link>
   </nav>
-  <router-view/>
+  <router-view />
 </template>
 
 <script>
 
-export default{
+export default {
   data() {
     return {
-      dinamicRouteHome: {name: 'home'},
-      dinamicRouteContact: {name: 'contact'},
-      dinamicRouteAbout: {name: 'about'}
+      dinamicRouteHome: { name: 'home' },
+      dinamicRouteContact: { name: 'contact' },
+      dinamicRouteAbout: { name: 'about' }
     }
   }
 }
@@ -42,5 +41,4 @@ nav a {
 
 nav a.router-link-exact-active {
   color: #42b983;
-}
-</style>
+}</style>
