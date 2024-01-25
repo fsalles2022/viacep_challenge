@@ -40,4 +40,5 @@ Rotas dinamicas
 npm install bootstrap
 npm install axios
 npm install vee-validate@next
+npm install jquery
 
