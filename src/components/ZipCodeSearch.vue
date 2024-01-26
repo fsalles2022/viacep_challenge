@@ -3,12 +3,12 @@
 
         <div>
             <div class="input-group mb-1 mt-1">
-                <input type="text" class="form-control" v-model="cep" id="cep" placeholder="Digite o cep"
-                    aria-label="Username" aria-describedby="basic-addon1" @input="handleCepInput"
+                <input type="text" class="form-control" v-model="zipcode" id="zipcode" placeholder="Digite o cep"
+                    aria-label="Username" aria-describedby="basic-addon1" @input="handlezipcodeInput"
                     @keyup.enter="zipcodeSearch" />
 
                 <button type="button" class="btn btn-primary" @click="zipcodeSearch" data-bs-toggle="modal"
-                    data-bs-target="#cepModal">
+                    data-bs-target="#zipcodeModal">
                     Buscar
                 </button>
                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
@@ -17,33 +17,40 @@
             </div>
         </div>
 
-
         <!-- Modal -->
-        <div class="modal fade" id="cepModal" tabindex="-1" aria-labelledby="cepModalLabel" aria-hidden="true">
+        <div class="modal fade" id="zipcodeModal" tabindex="-1" aria-labelledby="zipcodeModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h1 class="modal-title fs-5" id="cepModalLabel">Dados da Pesquisa</h1>
+                        <h1 class="modal-title fs-5" id="zipcodeModalLabel">Dados da Pesquisa</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form class="container mb-1" @submit.prevent="saveChanges">
-                            <!-- Adicione v-model para criar a ligação bidirecional -->
-                            <input v-model="address.cep" type="text" class="form-control mb-1" placeholder="CEP">
-                            <input v-model="address.logradouro" type="text" class="form-control mb-1"
-                                placeholder="Logradouro">
-                            <input v-model="address.bairro" type="text" class="form-control mb-1" placeholder="Bairro">
-                            <input v-model="address.localidade" type="text" class="form-control mb-1" placeholder="Cidade">
-                            <input v-model="address.uf" type="text" class="form-control mb-1" placeholder="UF">
-                            <input v-model="address.ddd" type="text" class="form-control mb-1" placeholder="DDD">
+                        <div v-if="address && !erroZipcode">
+                            <p v-if="address.zipcode && address.zipcode.length === 9">zipcode: {{
+                                formatzipcode(address.zipcode) }}</p>
+                            <!-- <p v-else>O zipcode fornecido não consta em nossa base de dados!<br> Digite um zipcode válido.</p> -->
+                            <form class="container mb-1" @submit.prevent="saveChanges">
 
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                                <button type="button" class="btn btn-primary" @click="saveChanges"
-                                    data-bs-dismiss="modal">Salvar</button>
+                                <input v-model="address.zipcode" type="text" class="form-control mb-1"
+                                    placeholder="zipcode">
+                                <input v-model="address.logradouro" type="text" class="form-control mb-1"
+                                    placeholder="Logradouro">
+                                <input v-model="address.bairro" type="text" class="form-control mb-1" placeholder="Bairro">
+                                <input v-model="address.localidade" type="text" class="form-control mb-1"
+                                    placeholder="Cidade">
+                                <input v-model="address.uf" type="text" class="form-control mb-1" placeholder="UF">
+                                <input v-model="address.ddd" type="text" class="form-control mb-1" placeholder="DDD">
 
-                            </div>
-                        </form>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                    <button type="button" class="btn btn-primary" @click="saveChanges"
+                                        data-bs-dismiss="modal">Salvar</button>
+
+                                </div>
+                            </form>
+                        </div>
+
                         <div v-if="erroZipcode" class="error-message">
                             <!-- Mostra mensagem de erro -->
                             <p>{{ erroZipcode }}</p>
@@ -58,7 +65,7 @@
                 <thead>
                     <tr>
                         <th scope="col" class="sortable">#</th>
-                        <th>CEP</th>
+                        <th>cep</th>
                         <th>Logradouro</th>
                         <th>Bairro</th>
                         <th>Cidade</th>
@@ -86,7 +93,6 @@
             </table>
 
         </div>
-
         <!-- Modal de confirmação -->
         <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel"
             aria-hidden="true">
@@ -129,24 +135,23 @@
             </div>
         </div>
 
-
     </div>
 </template>
-
+    
 <script>
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle';
-
+import Sortable from 'sortablejs';
 
 export default {
     data() {
         return {
-            cep: '',
+            zipcode: '',
             // address: null,
             erroZipcode: '',
             address: {
-                cep: '',
+                zipcode: '',
                 logradouro: '',
                 bairro: '',
                 localidade: '',
@@ -154,7 +159,7 @@ export default {
                 ddd: '',
             },
             dataTable: JSON.parse(localStorage.getItem('dataTable')) || [],
-            cepModal: null,
+            zipcodeModal: null,
         };
     },
     mounted() {
@@ -168,12 +173,7 @@ export default {
             const options = {
                 animation: 150, // Tempo de animação em milissegundos
             };
-
-            // Importe e inicialize o Sortable
-            import('sortablejs/modular/sortable.complete.esm.js').then((module) => {
-                const Sortable = module.default;
-                new Sortable(document.querySelector('tbody'), options);
-            });
+            new Sortable(document.querySelector('tbody'), options);
 
             // Adicione eventos de clique para classificar os dados ao clicar nas colunas
             sortableColumns.forEach(column => {
@@ -185,132 +185,143 @@ export default {
 
 
     methods: {
-        handleCepInput() {
+        handlezipcodeInput() {
             // Remove qualquer caractere que não seja número
-            let formattedCep = this.cep.replace(/\D/g, '');
+            let formattedzipcode = this.zipcode.replace(/\D/g, '');
 
             // Limita a 8 caracteres
-            if (formattedCep.length > 8) {
-                formattedCep = formattedCep.slice(0, 8);
+            if (formattedzipcode.length > 8) {
+                formattedzipcode = formattedzipcode.slice(0, 8);
             }
 
-            // Formata o CEP como "06325-030"
-            if (formattedCep.length >= 5) {
-                formattedCep = `${formattedCep.slice(0, 5)}-${formattedCep.slice(5)}`;
+            // Formata o zipcode como "06325-030"
+            if (formattedzipcode.length >= 5) {
+                formattedzipcode = `${formattedzipcode.slice(0, 5)}-${formattedzipcode.slice(5)}`;
             }
 
             // Atualiza o valor formatado no modelo
-            this.cep = formattedCep;
+            this.zipcode = formattedzipcode;
         },
         zipcodeSearch() {
             // Remove qualquer caractere que não seja número antes de realizar a busca
-            const numericCep = this.cep.replace(/\D/g, '');
+            const numericzipcode = this.zipcode.replace(/\D/g, '');
 
-            // Verifica se o CEP possui 8 caracteres numéricos
-            if (numericCep.length !== 8 || isNaN(Number(numericCep))) {
-                this.erroZipcode = 'Por favor, insira um CEP válido com 8 dígitos.';
+            // Verifica se o zipcode possui 8 caracteres numéricos
+            if (numericzipcode.length !== 8 || isNaN(Number(numericzipcode))) {
+                this.erroZipcode = 'Por favor, insira um cep válido com 8 dígitos.';
                 return;
             }
+             if (numericzipcode.length === 0 && isNaN(Number(numericzipcode))) {
+                this.erroZipcode = 'Por favor, insira um cep válido.';
+                return;
+            }
+           
+           
 
-            axios.get(`https://viacep.com.br/ws/${numericCep}/json/`)
+            axios.get(`https://viacep.com.br/ws/${numericzipcode}/json/`)
                 .then(response => {
                     this.address = response.data;
                     // Limpa o campo de input após a pesquisa
-                    this.cep = '';
+                    this.zipcode = '';
                     // Limpa a mensagem de erro
                     this.erroZipcode = '';
                 })
                 .catch(error => {
-                    console.error('Erro na busca de CEP:', error);
+                    console.error('Erro na busca de zipcode:', error);
                     // Exibe mensagem de erro na interface
-                    this.erroZipcode = 'Erro na busca de CEP. Por favor, tente novamente.';
+                    this.erroZipcode = 'Erro na busca do cep. Por favor, digite um cep válido.';
+                    this.zipcode = '';
                 });
         },
-        formatCep(cep) {
-            // Adiciona um traço entre os primeiros 5 caracteres e os últimos 3 caracteres do CEP
-            return `${cep.slice(0, 5)}${cep.slice(5)}`;
-        },
-        saveChanges() {
-            // Adiciona os dados do endereço à tabela de dados
-            this.dataTable.push({ ...this.address });
+       
 
-            // Limpa os campos do formulário após salvar
-            this.clearForm();
-            localStorage.setItem('dataTable', JSON.stringify(this.dataTable));
-            if (this.cepModal) {
-                this.cepModal.hide();
-            }
-
-            // Exibe a tabela de dados no console (para fins de demonstração)
-            // console.log('Tabela de Dados:', this.dataTable);
-        },
-        clearForm() {
-            // Limpa os campos do formulário
-            this.address = {
-                cep: '',
-                logradouro: '',
-                bairro: '',
-                localidade: '',
-                uf: '',
-                ddd: '',
-            };
-        },
-        clearStorage() {
-            // Limpa o localStorage
-            localStorage.clear();
-
-            // Atualiza a tabelaDeDados no componente
-            this.dataTable = [];
-            const confirmDeleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
-            confirmDeleteModal.hide();
-        },
-        deleteItem(index) {
-            // Remove o item da tabela de dados
-            this.dataTable.splice(index, 1);
-
-            // Atualiza o armazenamento local
-            localStorage.setItem('dataTable', JSON.stringify(this.dataTable));
-        },
-        showConfirmDeleteModal(index) {
-            this.itemToDeleteIndex = index;
-            const confirmDeleteItemModal = new bootstrap.Modal(document.getElementById('confirmDeleteItemModal'));
-            confirmDeleteItemModal.show();
-        },
-
-        confirmDeleteItem() {
-            // Remova o item da tabela de dados
-            this.dataTable.splice(this.itemToDeleteIndex, 1);
-
-            // Atualize o armazenamento local
-            localStorage.setItem('dataTable', JSON.stringify(this.dataTable));
-
-            // Feche o modal de confirmação
-            const confirmDeleteItemModal = new bootstrap.Modal(document.getElementById('confirmDeleteItemModal'));
-            confirmDeleteItemModal.hide();
-        },
-        sortTable(column) {
-            const columnIndex = Array.from(column.parentNode.children).indexOf(column);
-
-            // Lógica de classificação - exemplo: ordenar por número da coluna
-            this.dataTable.sort((a, b) => {
-                const valueA = a[columnIndex];
-                const valueB = b[columnIndex];
-
-                if (valueA < valueB) {
-                    return -1;
-                }
-                if (valueA > valueB) {
-                    return 1;
-                }
-                return 0;
-            });
-        },
-
+    formatzipcode(zipcode) {
+        // Adiciona um traço entre os primeiros 5 caracteres e os últimos 3 caracteres do zipcode
+        return `${zipcode.slice(0, 5)}${zipcode.slice(5)}`;
     },
+    saveChanges() {
+        // Adiciona os dados do endereço à tabela de dados
+        this.dataTable.push({ ...this.address });
+
+        // Limpa os campos do formulário após salvar
+        this.clearForm();
+        localStorage.setItem('dataTable', JSON.stringify(this.dataTable));
+        if (this.zipcodeModal) {
+            this.zipcodeModal.hide();
+        }
+
+        // Exibe a tabela de dados no console (para fins de demonstração)
+        // console.log('Tabela de Dados:', this.dataTable);
+    },
+    clearForm() {
+        // Limpa os campos do formulário
+        this.address = {
+            zipcode: '',
+            logradouro: '',
+            bairro: '',
+            localidade: '',
+            uf: '',
+            ddd: '',
+        };
+    },
+    clearStorage() {
+        // Limpa o localStorage
+        localStorage.clear();
+
+        // Atualiza a tabelaDeDados no componente
+        this.dataTable = [];
+        const confirmDeleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+        confirmDeleteModal.hide();
+    },
+
+    deleteItem(index) {
+        // Remove o item da tabela de dados
+        this.dataTable.splice(index, 1);
+
+        // Atualiza o armazenamento local
+        localStorage.setItem('dataTable', JSON.stringify(this.dataTable));
+    },
+    showConfirmDeleteModal(index) {
+        this.itemToDeleteIndex = index;
+        const confirmDeleteItemModal = new bootstrap.Modal(document.getElementById('confirmDeleteItemModal'));
+        confirmDeleteItemModal.show();
+    },
+
+    confirmDeleteItem() {
+        // Remova o item da tabela de dados
+        this.dataTable.splice(this.itemToDeleteIndex, 1);
+
+        // Atualize o armazenamento local
+        localStorage.setItem('dataTable', JSON.stringify(this.dataTable));
+
+        // Feche o modal de confirmação
+        const confirmDeleteItemModal = new bootstrap.Modal(document.getElementById('confirmDeleteItemModal'));
+        confirmDeleteItemModal.hide();
+    },
+
+    sortTable(column) {
+        const columnIndex = Array.from(column.parentNode.children).indexOf(column);
+
+        // Lógica de classificação - exemplo: ordenar por número da coluna
+        this.dataTable.sort((a, b) => {
+            const valueA = a[columnIndex];
+            const valueB = b[columnIndex];
+
+            if (valueA < valueB) {
+                return -1;
+            }
+            if (valueA > valueB) {
+                return 1;
+            }
+            return 0;
+        });
+    },
+
+},
 
 };
 </script>
-
+    
 <style>
 .container {
     width: 65%;
@@ -326,8 +337,10 @@ export default {
     background-color: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;
+
     padding: 10px;
     margin-bottom: 10px;
     border-radius: 5px;
 }
 </style>
+    
