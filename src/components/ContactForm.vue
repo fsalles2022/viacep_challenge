@@ -1,56 +1,103 @@
 <template>
-    <div class="container ">
-        <form id="contactForm">
-
-            <!-- Name input -->
-            <div class="mb-3">
-       
-                <input class="form-control" id="name" type="text" placeholder="Nome" data-sb-validations="required" />
-                <div class="invalid-feedback" data-sb-feedback="name:required">Nome obrigatório.</div>
-            </div>
-
-            <!-- Email address input -->
-            <div class="mb-3">
-       
-                <input class="form-control" id="emailAddress" type="email" placeholder="Email"
-                    data-sb-validations="required, email" />
-                <div class="invalid-feedback" data-sb-feedback="emailAddress:required">Email Address is required.</div>
-                <div class="invalid-feedback" data-sb-feedback="emailAddress:email">Email Address Email is not valid.</div>
-            </div>
-
-            <!-- Message input -->
-            <div class="mb-3">
-            
-                <textarea class="form-control" id="message" type="text" placeholder="Messagem" style="height: 10rem;"
-                    data-sb-validations="required"></textarea>
-                <div class="invalid-feedback" data-sb-feedback="message:required">Message is required.</div>
-            </div>
-
-            <!-- Form submissions success message -->
-            <div class="d-none" id="submitSuccessMessage">
-                <div class="text-center mb-3">Form submission successful!</div>
-            </div>
-
-            <!-- Form submissions error message -->
-            <div class="d-none" id="submitErrorMessage">
-                <div class="text-center text-danger mb-3">Error sending message!</div>
-            </div>
-
-            <!-- Form submit button -->
-            <div class="d-grid">
-                <button class="btn btn-primary btn-lg" type="submit">Submit</button>
-            </div>
-
+    <div class="container">
+        <form>
+          <label>Nome</label>
+          <input 
+            type="text" 
+            v-model="name"
+            name="name"
+            placeholder="Nome"
+          >
+          <label>Email</label>
+          <input 
+            type="email" 
+            v-model="email"
+            name="email"
+            placeholder="Seu mail"
+            >
+          <label>Menssagem</label>
+          <textarea 
+            name="message"
+            v-model="message"
+            cols="30" rows="5"
+            placeholder="Menssagem">
+          </textarea>
+          
+          <input type="submit" value="Send">
         </form>
     </div>
 </template>
+<style scoped>
+* {box-sizing: border-box;}
 
-<style>
 .container {
-    width: 65%;
-    height:50%;
-    margin: 0 auto;
+  display: block;
+  margin:auto;
+  text-align: center;
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  padding: 20px;
+  width: 50%;
 }
 
+label {
+  float: left;
+}
 
+input[type=text], [type=email], textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  margin-top: 6px;
+  margin-bottom: 16px;
+  resize: vertical;
+}
+
+input[type=submit] {
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=submit]:hover {
+  background-color: #45a049;
+}
 </style>
+
+<script>
+import emailjs from 'emailjs-com';
+export default {
+  name: 'ContactUs',
+  data() {
+    return {
+      name: '',
+      email: '',
+      message: ''
+    }
+  },
+  methods: {
+    sendEmail(e) {
+      try {
+        emailjs.sendForm('viacep-challenge', 'template_wwcfz9n', e.target,
+        'YOUR_USER_ID', {
+          name: this.name,
+          email: this.email,
+          message: this.message
+        })
+
+      } catch(error) {
+          console.log({error})
+      }
+      // Reset form field
+      this.name = ''
+      this.email = ''
+      this.message = ''
+    },
+  }
+}
+</script>
