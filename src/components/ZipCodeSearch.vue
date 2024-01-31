@@ -17,7 +17,7 @@
             </div>
         </div>
 
-        <!-- Modal -->
+        <!-- Modal apresenta o resultado da pesquisa-->
         <div class="modal fade" id="zipcodeModal" tabindex="-1" aria-labelledby="zipcodeModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -49,9 +49,8 @@
                                 </div>
                             </form>
                         </div>
-
+                        <!-- Mostra mensagem de erro -->
                         <div v-if="erroZipcode" class="error-message">
-                            <!-- Mostra mensagem de erro -->
                             <p>{{ erroZipcode }}</p>
                         </div>
                     </div>
@@ -184,22 +183,22 @@ export default {
 
             itemsPerPage: 3, // Número de itens por página
             currentPage: 1,
-           
+
         };
     },
 
     computed: {
-    totalPages() {
-        return Math.ceil(this.dataTable.length / this.itemsPerPage);
+        totalPages() {
+            return Math.ceil(this.dataTable.length / this.itemsPerPage);
+        },
+        pages() {
+            const pagesArray = [];
+            for (let i = 1; i <= this.totalPages; i++) {
+                pagesArray.push(i);
+            }
+            return pagesArray;
+        },
     },
-    pages() {
-        const pagesArray = [];
-        for (let i = 1; i <= this.totalPages; i++) {
-            pagesArray.push(i);
-        }
-        return pagesArray;
-    },
-},
 
     mounted() {
         this.$nextTick(() => {
@@ -251,6 +250,15 @@ export default {
                 this.erroZipcode = 'Por favor, insira um cep válido com 8 dígitos.';
                 return;
             }
+            // Verifica se o CEP já está cadastrado no localStorage
+            const storedAddress = localStorage.getItem(`cep_${numericzipcode}`);
+            if (storedAddress) {
+                // Se já estiver no localStorage, utiliza esses dados em vez de fazer a requisição
+                this.address = JSON.parse(storedAddress);
+                this.zipcode = '';
+                this.erroZipcode = 'Cep já cadastrado no sistema';
+                return;
+            }
 
             axios.get(`https://viacep.com.br/ws/${numericzipcode}/json/`)
                 .then(response => {
@@ -269,6 +277,8 @@ export default {
                     } else {
                         // Caso contrário, os dados do endereço são válidos
                         this.address = response.data;
+                        // Armazena os dados no localStorage para reutilização
+                        localStorage.setItem(`cep_${numericzipcode}`, JSON.stringify(response.data));
                         this.zipcode = '';
                         this.erroZipcode = '';
                     }
@@ -371,26 +381,26 @@ export default {
             });
         },
         changePage(page) {
-        this.currentPage = page;
-        this.paginateData();
-    },
-    nextPage() {
-        if (this.currentPage < this.totalPages) {
-            this.currentPage++;
+            this.currentPage = page;
             this.paginateData();
-        }
-    },
-    prevPage() {
-        if (this.currentPage > 1) {
-            this.currentPage--;
-            this.paginateData();
-        }
-    },
-    paginateData() {
-        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-        const endIndex = startIndex + this.itemsPerPage;
-        return this.dataTable.slice(startIndex, endIndex);
-    },
+        },
+        nextPage() {
+            if (this.currentPage < this.totalPages) {
+                this.currentPage++;
+                this.paginateData();
+            }
+        },
+        prevPage() {
+            if (this.currentPage > 1) {
+                this.currentPage--;
+                this.paginateData();
+            }
+        },
+        paginateData() {
+            const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+            const endIndex = startIndex + this.itemsPerPage;
+            return this.dataTable.slice(startIndex, endIndex);
+        },
 
     },
 
